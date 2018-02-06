@@ -7,6 +7,9 @@ use InvalidArgumentException;
 // From `charcoal-config`
 use Charcoal\Config\AbstractConfig;
 
+// From 'charcoal-translator'
+use Charcoal\Translator\Middleware\LanguageMiddleware;
+
 /**
  * Locales Configset
  *
@@ -49,8 +52,7 @@ class LocalesConfig extends AbstractConfig
             'default_language'   => 'en',
             'fallback_languages' => [
                 'en'
-            ],
-            'auto_detect' => false
+            ]
         ];
     }
 
@@ -115,11 +117,19 @@ class LocalesConfig extends AbstractConfig
     }
 
     /**
+     * @deprecated 0.4 In favour of {@see LanguageMiddleware::$useBrowser}.
      * @param  boolean $autoDetect The auto-detect flag.
      * @return LocalesConfig Chainable
      */
     public function setAutoDetect($autoDetect)
     {
+        trigger_error(
+            sprintf(
+                '"locales.auto_detect" is deprecated in favour of "use_browser" with %s',
+                LanguageMiddleware::class
+            ),
+            E_USER_DEPRECATED
+        );
         $this->autoDetect = !!$autoDetect;
         return $this;
     }

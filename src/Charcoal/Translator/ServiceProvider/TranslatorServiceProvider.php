@@ -66,59 +66,14 @@ class TranslatorServiceProvider implements ServiceProviderInterface
         };
 
         /**
-         * Default language of the application, optionally the navigator's preferred language.
+         * Default language of the application.
          *
          * @param  Container $container Pimple DI container.
          * @return string|null
          */
         $container['locales/default-language'] = function (Container $container) {
-            $localesConfig = $container['locales/config'];
-            if (isset($localesConfig['auto_detect']) && $localesConfig['auto_detect']) {
-                if ($container['locales/browser-language'] !== null) {
-                    return $container['locales/browser-language'];
-                }
-            }
-            return $localesConfig['default_language'];
-        };
-
-        /**
-         * Accepted language from the navigator.
-         *
-         * Example with Accept-Language "zh-Hant-HK, fr-CH, fr;q=0.9, en;q=0.7":
-         *
-         * 1. zh-Hant-HK
-         * 2. fr-CH
-         * 3. fr
-         * 4. en
-         *
-         * @param  Container $container Pimple DI container.
-         * @return string|null
-         */
-        $container['locales/browser-language'] = function (Container $container) {
-            if (!isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-                return null;
-            }
-
-            /**
-             * Using data from configset instead of LocalesManager
-             * since the latter might need the browser language
-             * as the default language.
-             */
-            $localesConfig    = $container['locales/config'];
-            $supportedLocales = array_filter($localesConfig['languages'], function ($locale) {
-                return !(isset($locale['active']) && !$locale['active']);
-            });
-
-            $acceptableLanguages = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-            foreach ($acceptableLanguages as $acceptedLang) {
-                $lang = explode(';', $acceptedLang);
-                $lang = trim($lang[0]);
-                if (isset($supportedLocales[$lang])) {
-                    return $lang;
-                }
-            }
-
-            return null;
+            $manager = $container['locales/manager'];
+            return $manager->defaultLocale();
         };
 
         /**
@@ -166,7 +121,7 @@ class TranslatorServiceProvider implements ServiceProviderInterface
             $localesConfig = $container['locales/config'];
             return new LocalesManager([
                 'locales'          => $localesConfig['languages'],
-                'default_language' => $container['locales/default-language']
+                'default_language' => $localesConfig['default_language']
             ]);
         };
     }
@@ -361,8 +316,7 @@ class TranslatorServiceProvider implements ServiceProviderInterface
                 ],
                 $middlewareConfig,
                 [
-                    'translator'        => $container['translator'],
-                    'browser_language'  => $container['locales/browser-language']
+                    'translator' => $container['translator']
                 ]
             );
             return new LanguageMiddleware($middlewareConfig);

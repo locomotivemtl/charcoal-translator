@@ -2,16 +2,12 @@
 
 namespace Charcoal\Tests\Translator;
 
-use ReflectionClass;
-
-// From PHPUnit
-use PHPUnit_Framework_TestCase;
-
 // From 'symfony/translation'
 use Symfony\Component\Translation\MessageSelector;
 use Symfony\Component\Translation\Loader\ArrayLoader;
 
 // From 'charcoal-translator'
+use Charcoal\Translator\Testing\AbstractTestCase;
 use Charcoal\Translator\LocalesManager;
 use Charcoal\Translator\Translation;
 use Charcoal\Translator\Translator;
@@ -19,7 +15,7 @@ use Charcoal\Translator\Translator;
 /**
  *
  */
-class TranslatorTest extends PHPUnit_Framework_TestCase
+class TranslatorTest extends AbstractTestCase
 {
     /**
      * The 'symfony/config' cache factory to ignore.
@@ -42,7 +38,7 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
     private $localesManager;
 
     /**
-     * Set up the test.
+     * @return void
      */
     public function setUp()
     {
@@ -57,6 +53,9 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         $this->obj->addLoader('array', new ArrayLoader());
     }
 
+    /**
+     * @return void
+     */
     public static function setUpBeforeClass()
     {
         $path = realpath(__DIR__ . '/../../../' . static::SYMFONY_CACHE_PATH);
@@ -65,6 +64,9 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @return void
+     */
     public static function tearDownAfterClass()
     {
         $path = realpath(__DIR__ . '/../../../' . static::SYMFONY_CACHE_PATH . '.txt');
@@ -73,6 +75,9 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @return void
+     */
     private function localesManager()
     {
         if ($this->localesManager === null) {
@@ -94,6 +99,9 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         return $this->localesManager;
     }
 
+    /**
+     * @return void
+     */
     public function testConstructorWithoutMessageSelector()
     {
         $obj = new Translator([
@@ -104,6 +112,9 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testAvailableDomains()
     {
         $domains = $this->obj->availableDomains();
@@ -111,6 +122,9 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals([ 'messages' ], $domains);
     }
 
+    /**
+     * @return void
+     */
     public function testTranslation()
     {
         $ret = $this->obj->translation('foo');
@@ -132,6 +146,7 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider invalidTransTests
+     * @return       void
      */
     public function testTranslationInvalidValuesReturnNull($val)
     {
@@ -140,6 +155,7 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider validTransTests
+     * @return       void
      */
     public function testTranslate($expected, $id, $translation, $parameters, $locale, $domain)
     {
@@ -153,12 +169,16 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider invalidTransTests
+     * @return       void
      */
     public function testTranslateInvalidValuesReturnEmptyString($val)
     {
         $this->assertEquals('', $this->obj->translate($val));
     }
 
+    /**
+     * @return void
+     */
     public function testTranslationChoice()
     {
         $ret = $this->obj->translationChoice('There is one apple|There is %count% apples', 2);
@@ -180,6 +200,7 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider invalidTransTests
+     * @return       void
      */
     public function testTranslationChoiceInvalidValuesReturnNull($val)
     {
@@ -188,6 +209,7 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider validTransChoiceTests
+     * @return       void
      */
     public function testTranslateChoice($expected, $id, $translation, $number, $parameters, $locale, $domain)
     {
@@ -199,12 +221,18 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $this->obj->translateChoice($id, $number, $parameters, $domain, $locale));
     }
 
+    /**
+     * @return void
+     */
     public function testSetLocaleSetLocalesManagerCurrentLanguage()
     {
         $this->obj->setLocale('fr');
         $this->assertEquals('fr', $this->localesManager()->currentLocale());
     }
 
+    /**
+     * @return void
+     */
     public function testLocales()
     {
         $this->assertArrayHasKey('en', $this->obj->locales());
@@ -212,23 +240,28 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         $this->assertArrayNotHasKey('jp', $this->obj->locales());
     }
 
+    /**
+     * @return void
+     */
     public function testAvailableLocales()
     {
         $this->assertEquals([ 'en', 'fr' ], $this->obj->availableLocales());
     }
 
+    /**
+     * @return void
+     */
     public function testInvalidArrayTranslation()
     {
-        $class = new ReflectionClass($this->obj);
-        $method = $class->getMethod('isValidTranslation');
-        $method->setAccessible(true);
+        $method = $this->getMethod($this->obj, 'isValidTranslation');
 
         $this->assertFalse($method->invokeArgs($this->obj, [ [ 0 => 'foo' ] ]));
         $this->assertFalse($method->invokeArgs($this->obj, [ [ 'foo' => 0 ] ]));
     }
 
     /**
-     * @link https://github.com/symfony/translation/blob/v3.2.3/Tests/TranslatorTest.php
+     * @link   https://github.com/symfony/translation/blob/v3.2.3/Tests/TranslatorTest.php
+     * @return array
      */
     public function validTransTests()
     {
@@ -241,6 +274,9 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
     public function invalidTransTests()
     {
         return [
@@ -257,7 +293,8 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @link https://github.com/symfony/translation/blob/v3.2.3/Tests/TranslatorTest.php
+     * @link   https://github.com/symfony/translation/blob/v3.2.3/Tests/TranslatorTest.php
+     * @return array
      */
     public function validTransChoiceTests()
     {
@@ -294,13 +331,22 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
  */
 class StringClass
 {
+    /**
+     * @var string
+     */
     protected $str;
 
+    /**
+     * @param string $str
+     */
     public function __construct($str)
     {
         $this->str = $str;
     }
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return $this->str;

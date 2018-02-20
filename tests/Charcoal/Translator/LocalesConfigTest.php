@@ -4,16 +4,14 @@ namespace Charcoal\Tests\Translator;
 
 use InvalidArgumentException;
 
-// From PHPUnit
-use PHPUnit_Framework_TestCase;
-
 // From `charcoal-translator`
+use Charcoal\Translator\Testing\AbstractTestCase;
 use Charcoal\Translator\LocalesConfig;
 
 /**
  *
  */
-class LocalesConfigTest extends PHPUnit_Framework_TestCase
+class LocalesConfigTest extends AbstractTestCase
 {
     /**
      * Tested Class.
@@ -23,13 +21,16 @@ class LocalesConfigTest extends PHPUnit_Framework_TestCase
     private $obj;
 
     /**
-     * Set up the test.
+     * @return void
      */
     public function setUp()
     {
         $this->obj = new LocalesConfig();
     }
 
+    /**
+     * @return void
+     */
     public function testDefaultsArrayAccess()
     {
         $this->assertArrayHasKey('en', $this->obj['languages']);
@@ -38,11 +39,14 @@ class LocalesConfigTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($this->obj['auto_detect']);
     }
 
+    /**
+     * @return void
+     */
     public function testSetLanguages()
     {
         $langs = [
             'foo' => [
-                'locale'=>'foo-FOO'
+                'locale' => 'foo-FOO'
             ]
         ];
         $ret = $this->obj->setLanguages($langs);
@@ -51,13 +55,16 @@ class LocalesConfigTest extends PHPUnit_Framework_TestCase
 
         $langs = [
             'bar' => [
-                'locale'=>'bar-BAR'
+                'locale' => 'bar-BAR'
             ]
         ];
         $this->obj['languages'] = $langs;
         $this->assertEquals($langs, $this->obj['languages']);
     }
 
+    /**
+     * @return void
+     */
     public function testSetDefaultLanguage()
     {
         $ret = $this->obj->setDefaultLanguage('foo');
@@ -71,6 +78,9 @@ class LocalesConfigTest extends PHPUnit_Framework_TestCase
         $this->obj->setDefaultLanguage(false);
     }
 
+    /**
+     * @return void
+     */
     public function testSetFallbackLanguages()
     {
         $ret = $this->obj->setFallbackLanguages(['foo']);

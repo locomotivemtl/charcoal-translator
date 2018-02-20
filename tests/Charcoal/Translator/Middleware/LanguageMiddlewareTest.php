@@ -4,9 +4,6 @@ namespace Charcoal\Tests\Translation\ServiceProvider;
 
 use ReflectionClass;
 
-// From PHPUnit
-use PHPUnit_Framework_TestCase;
-
 // From PSR-7
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,6 +14,7 @@ use Psr\Http\Message\ResponseInterface;
 use Pimple\Container;
 
 // From `charcoal-translator`
+use Charcoal\Translator\Testing\AbstractTestCase;
 use Charcoal\Translator\Middleware\LanguageMiddleware;
 use Charcoal\Translator\ServiceProvider\TranslatorServiceProvider;
 use Charcoal\Tests\Translator\ContainerProvider;
@@ -24,7 +22,7 @@ use Charcoal\Tests\Translator\ContainerProvider;
 /**
  *
  */
-class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
+class LanguageMiddlewareTest extends AbstractTestCase
 {
     /**
      * Tested Class.
@@ -40,6 +38,9 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
      */
     private $container;
 
+    /**
+     * @return void
+     */
     public static function setupBeforeClass()
     {
         if (!isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
@@ -47,6 +48,9 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @return void
+     */
     public static function teardownAfterClass()
     {
         if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
@@ -55,7 +59,7 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Set up the test.
+     * @return void
      */
     public function setUp()
     {
@@ -78,7 +82,6 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
 
         $defaults = [
             'translator'       => $container['translator'],
-            'browser_language' => $container['locales/browser-language'],
             'default_language' => $container['translator']->getLocale(),
         ];
 
@@ -119,7 +122,6 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
                             ]
                         ]
                     ],
-                    'auto_detect' => true,
                     'debug' => false
                 ]
             ];
@@ -171,22 +173,9 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
         return $response;
     }
 
-    public static function getMethod($obj, $name)
-    {
-        $class = new ReflectionClass($obj);
-        $method = $class->getMethod($name);
-        $method->setAccessible(true);
-
-        return $method;
-    }
-
-    public static function callMethod($obj, $name, array $args = [])
-    {
-        $method = static::getMethod($obj, $name);
-
-        return $method->invokeArgs($obj, $args);
-    }
-
+    /**
+     * @return void
+     */
     public function testInvoke()
     {
         $request  = $this->mockRequest('/fr/foo/bar');
@@ -199,6 +188,9 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response, $return);
     }
 
+    /**
+     * @return void
+     */
     public function testInvokeWithExcludedPath()
     {
         $request  = $this->mockRequest('/admin/foo/bar');
@@ -211,37 +203,46 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($response, $return);
     }
 
+    /**
+     * @return void
+     */
     public function testGetLanguageWithServerRequest()
     {
         $request = $this->mockRequest('/fr/foo/bar');
-        $return  = static::callMethod($this->obj, 'getLanguage', [ $request ]);
+        $return  = $this->callMethod($this->obj, 'getLanguage', $request);
         $this->assertEquals('fr', $return);
 
         $request = $this->mockRequest('/jp/foo/bar', [ 'current_language' => 'fr' ]);
-        $return  = static::callMethod($this->obj, 'getLanguage', [ $request ]);
+        $return  = $this->callMethod($this->obj, 'getLanguage', $request);
         $this->assertEquals('fr', $return);
 
         $_SESSION['current_language'] = 'fr';
         $request = $this->mockRequest();
-        $return  = static::callMethod($this->obj, 'getLanguage', [ $request ]);
+        $return  = $this->callMethod($this->obj, 'getLanguage', $request);
         $this->assertEquals('fr', $return);
         unset($_SESSION['current_language']);
 
         $request = $this->mockRequest();
-        $return  = static::callMethod($this->obj, 'getLanguage', [ $request ]);
+        $return  = $this->callMethod($this->obj, 'getLanguage', $request);
         $this->assertEquals('fr', $return);
     }
 
+    /**
+     * @return void
+     */
     public function testGetLanguageWithClientRequest()
     {
         $request = $this->createMock(ClientRequestInterface::class);
         $request->expects($this->any())->method('getUri')->will($this->returnValue($this->mockUri('/jp/foo/bar')));
         $request->expects($this->any())->method('getRequestTarget')->will($this->returnValue('/jp/foo/bar'));
 
-        $return  = static::callMethod($this->obj, 'getLanguage', [ $request ]);
+        $return  = $this->callMethod($this->obj, 'getLanguage', $request);
         $this->assertEquals('fr', $return);
     }
 
+    /**
+     * @return void
+     */
     public function testGetLanguageUseHost()
     {
         $this->obj = $this->middlewareFactory([
@@ -263,7 +264,7 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->any())->method('getUri')->will($this->returnValue($uri));
 
-        $return = static::callMethod($this->obj, 'getLanguage', [ $request ]);
+        $return = $this->callMethod($this->obj, 'getLanguage', $request);
         $this->assertEquals('fr', $return);
 
         $uri = $this->createMock(UriInterface::class);
@@ -272,10 +273,13 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->any())->method('getUri')->will($this->returnValue($uri));
 
-        $return = static::callMethod($this->obj, 'getLanguage', [ $request ]);
+        $return = $this->callMethod($this->obj, 'getLanguage', $request);
         $this->assertEquals('en', $return);
     }
 
+    /**
+     * @return void
+     */
     public function testGetLanguageUseHostWithBadHost()
     {
         $this->obj = $this->middlewareFactory([
@@ -297,10 +301,13 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->any())->method('getUri')->will($this->returnValue($uri));
 
-        $return = static::callMethod($this->obj, 'getLanguage', [ $request ]);
+        $return = $this->callMethod($this->obj, 'getLanguage', $request);
         $this->assertEquals('en', $return);
     }
 
+    /**
+     * @return void
+     */
     public function testGetLanguageUseDefault()
     {
         $this->obj = $this->middlewareFactory([
@@ -308,7 +315,7 @@ class LanguageMiddlewareTest extends PHPUnit_Framework_TestCase
         ]);
 
         $request = $this->mockRequest();
-        $return  = static::callMethod($this->obj, 'getLanguage', [ $request ]);
+        $return  = $this->callMethod($this->obj, 'getLanguage', $request);
         $this->assertEquals('en', $return);
     }
 }

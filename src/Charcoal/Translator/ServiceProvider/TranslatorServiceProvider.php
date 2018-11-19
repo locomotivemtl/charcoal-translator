@@ -95,7 +95,7 @@ class TranslatorServiceProvider implements ServiceProviderInterface
          * @return string|null
          */
         $container['locales/browser-language'] = function (Container $container) {
-            if (!isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+            if (!isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) || empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
                 return null;
             }
 
@@ -108,6 +108,12 @@ class TranslatorServiceProvider implements ServiceProviderInterface
             $supportedLocales = array_filter($localesConfig['languages'], function ($locale) {
                 return !(isset($locale['active']) && !$locale['active']);
             });
+
+            $localeFromHeader = locale_accept_from_http($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+            $langFromHeader   = substr($localeFromHeader, 0, 2);
+            if (isset($supportedLocales[$langFromHeader])) {
+                return $langFromHeader;
+            }
 
             $acceptableLanguages = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
             foreach ($acceptableLanguages as $acceptedLang) {

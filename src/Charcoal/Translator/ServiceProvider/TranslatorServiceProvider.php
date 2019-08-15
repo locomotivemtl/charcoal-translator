@@ -27,6 +27,7 @@ use Charcoal\Translator\LocalesConfig;
 use Charcoal\Translator\LocalesManager;
 use Charcoal\Translator\Translator;
 use Charcoal\Translator\TranslatorConfig;
+use Charcoal\Translator\Factory\TranslationFactory;
 use Charcoal\Translator\Middleware\LanguageMiddleware;
 
 /**
@@ -230,11 +231,10 @@ class TranslatorServiceProvider implements ServiceProviderInterface
         $container['translator'] = function (Container $container) {
             $transConfig = $container['translator/config'];
             $translator  = new Translator([
-                'manager'           => $container['locales/manager'],
-                'message_selector'  => $container['translator/message-selector'],
-                'message_formatter' => $container['translator/message-formatter'],
-                'cache_dir'         => $transConfig['cache_dir'],
-                'debug'             => $transConfig['debug'],
+                'manager'             => $container['locales/manager'],
+                'translation_factory' => $container['translation/factory'],
+                'cache_dir'           => $transConfig['cache_dir'],
+                'debug'               => $transConfig['debug'],
             ]);
 
             $translator->setFallbackLocales($container['locales/fallback-languages']);
@@ -274,6 +274,20 @@ class TranslatorServiceProvider implements ServiceProviderInterface
             }
 
             return $translator;
+        };
+
+        /**
+         * Translation object factory.
+         *
+         * @param  Container $container Pimple DI container.
+         * @return TranslationFactory
+         */
+        $container['translation/factory'] = function (Container $container) {
+            $factory = new TranslationFactory([
+                'manager'           => $container['locales/manager'],
+                'message_formatter' => $container['translator/message-formatter'],
+            ]);
+            return $factory;
         };
 
         $this->registerTranslatorLoaders($container);

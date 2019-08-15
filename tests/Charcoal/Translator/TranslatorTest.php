@@ -7,9 +7,9 @@ use ReflectionClass;
 // From 'symfony/translation'
 use Symfony\Component\Translation\Formatter\MessageFormatter;
 use Symfony\Component\Translation\Loader\ArrayLoader;
-use Symfony\Component\Translation\MessageSelector;
 
 // From 'charcoal-translator'
+use Charcoal\Translator\Factory\TranslationFactory;
 use Charcoal\Translator\LocalesManager;
 use Charcoal\Translator\Translation;
 use Charcoal\Translator\Translator;
@@ -49,16 +49,17 @@ class TranslatorTest extends AbstractTestCase
      */
     public function setUp()
     {
-        $selector  = new MessageSelector();
-        $formatter = new MessageFormatter($selector);
+        $manager = $this->localesManager();
+        $factory = new TranslationFactory([
+            'manager' => $manager,
+        ]);
 
         $this->obj = new Translator([
-            'locale'            => 'en',
-            'cache_dir'         => null,
-            'debug'             => false,
-            'manager'           => $this->localesManager(),
-            'message_selector'  => $selector,
-            'message_formatter' => $formatter,
+            'locale'              => 'en',
+            'cache_dir'           => null,
+            'debug'               => false,
+            'manager'             => $manager,
+            'translation_factory' => $factory,
         ]);
 
         $this->obj->addLoader('array', new ArrayLoader());
@@ -112,51 +113,27 @@ class TranslatorTest extends AbstractTestCase
     /**
      * @return void
      */
-    public function testConstructorWithMessageSelector()
-    {
-        $selector   = new MessageSelector();
-        $translator = new Translator([
-            'locale'           => 'en',
-            'cache_dir'        => null,
-            'debug'            => false,
-            'manager'          => $this->localesManager(),
-            'message_selector' => $selector,
-        ]);
-
-        $this->assertSame($selector, $this->callMethod($translator, 'selector'));
-    }
-
-    /**
-     * @return void
-     */
-    public function testConstructorWithoutMessageSelector()
-    {
-        $translator = new Translator([
-            'locale'           => 'en',
-            'cache_dir'        => null,
-            'debug'            => false,
-            'manager'          => $this->localesManager(),
-            'message_selector' => null,
-        ]);
-
-        $this->assertInstanceOf(MessageSelector::class, $this->callMethod($translator, 'selector'));
-    }
-
-    /**
-     * @return void
-     */
     public function testConstructorWithMessageFormatter()
     {
-        $formatter  = new MessageFormatter();
-        $translator = new Translator([
-            'locale'            => 'en',
-            'cache_dir'         => null,
-            'debug'             => false,
-            'manager'           => $this->localesManager(),
-            'message_formatter' => $formatter,
+        $manager    = $this->localesManager();
+        $formatter1 = new MessageFormatter();
+        $formatter2 = new MessageFormatter();
+        $factory    = new TranslationFactory([
+            'manager'           => $manager,
+            'message_formatter' => $formatter1,
         ]);
 
-        $this->assertSame($formatter, $this->callMethod($translator, 'formatter'));
+        $translator = new Translator([
+            'locale'              => 'en',
+            'cache_dir'           => null,
+            'debug'               => false,
+            'manager'             => $manager,
+            'translation_factory' => $factory,
+            'message_formatter'   => $formatter2,
+        ]);
+
+        $this->assertNotSame($formatter1, $this->callMethod($translator, 'getFormatter'));
+        $this->assertSame($formatter2, $this->callMethod($translator, 'getFormatter'));
     }
 
     /**
@@ -164,15 +141,23 @@ class TranslatorTest extends AbstractTestCase
      */
     public function testConstructorWithoutMessageFormatter()
     {
-        $translator = new Translator([
-            'locale'            => 'en',
-            'cache_dir'         => null,
-            'debug'             => false,
-            'manager'           => $this->localesManager(),
-            'message_formatter' => null,
+        $manager    = $this->localesManager();
+        $formatter1 = new MessageFormatter();
+        $factory    = new TranslationFactory([
+            'manager'           => $manager,
+            'message_formatter' => $formatter1,
         ]);
 
-        $this->assertInstanceOf(MessageFormatter::class, $this->callMethod($translator, 'formatter'));
+        $translator = new Translator([
+            'locale'              => 'en',
+            'cache_dir'           => null,
+            'debug'               => false,
+            'manager'             => $manager,
+            'translation_factory' => $factory,
+            'message_formatter'   => null,
+        ]);
+
+        $this->assertSame($formatter1, $this->callMethod($translator, 'getFormatter'));
     }
 
     /**
@@ -328,18 +313,6 @@ class TranslatorTest extends AbstractTestCase
     public function testAvailableLocales()
     {
         $this->assertEquals([ 'en', 'fr' ], $this->obj->availableLocales());
-    }
-
-    /**
-     * @return void
-     */
-    public function testInvalidArrayTranslation()
-    {
-        $method = $this->getMethod($this->obj, 'isValidTranslation');
-        $method->setAccessible(true);
-
-        $this->assertFalse($method->invokeArgs($this->obj, [ [ 0 => 'Hello!' ] ]));
-        $this->assertFalse($method->invokeArgs($this->obj, [ [ 'hello' => 0 ] ]));
     }
 
     /**

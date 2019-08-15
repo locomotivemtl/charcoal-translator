@@ -6,6 +6,7 @@ namespace Charcoal\Tests\Translation\ServiceProvider;
 use Pimple\Container;
 
 // From 'charcoal-translator'
+use Charcoal\Translator\Factory\TranslationFactoryInterface;
 use Charcoal\Translator\Middleware\LanguageMiddleware;
 use Charcoal\Translator\ServiceProvider\TranslatorServiceProvider;
 use Charcoal\Translator\LocalesManager;
@@ -116,6 +117,7 @@ class TranslatorServiceProviderTest extends AbstractTestCase
         $this->assertTrue(isset($this->container['locales/browser-language']));
         $this->assertTrue(isset($this->container['translator/message-selector']));
         $this->assertTrue(isset($this->container['translator']));
+        $this->assertTrue(isset($this->container['translation/factory']));
         $this->assertTrue(isset($this->container['middlewares/charcoal/translator/middleware/language']));
     }
 
@@ -231,6 +233,15 @@ class TranslatorServiceProviderTest extends AbstractTestCase
     {
         $translator = $this->container['translator'];
         $this->assertInstanceOf(Translator::class, $translator);
+    }
+
+    /**
+     * @return void
+     */
+    public function testTranslationFactory()
+    {
+        $factory = $this->container['translation/factory'];
+        $this->assertInstanceOf(TranslationFactoryInterface::class, $factory);
     }
 
     /**

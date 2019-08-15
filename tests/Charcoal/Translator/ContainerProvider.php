@@ -21,7 +21,7 @@ use Slim\Http\Uri;
 use Pimple\Container;
 
 // From 'symfony/translation'
-use Symfony\Component\Translation\MessageSelector;
+use Symfony\Component\Translation\Formatter\MessageFormatter;
 
 // From 'league/climate'
 use League\CLImate\CLImate;
@@ -41,6 +41,7 @@ use Charcoal\Model\Service\MetadataLoader;
 use Charcoal\Source\DatabaseSource;
 
 // From 'charcoal-translator'
+use Charcoal\Translator\Factory\TranslationFactory;
 use Charcoal\Translator\LocalesConfig;
 use Charcoal\Translator\LocalesManager;
 use Charcoal\Translator\TranslatorConfig;
@@ -216,6 +217,8 @@ class ContainerProvider
      */
     public function registerTranslator(Container $container)
     {
+        $this->registerTranslationFactory($container);
+
         $container['locales/config'] = function (Container $container) {
             return new LocalesConfig($container['config']['locales']);
         };
@@ -234,15 +237,36 @@ class ContainerProvider
 
         $container['translator'] = function (Container $container) {
             $translator = new Translator([
-                'manager'          => $container['locales/manager'],
-                'message_selector' => new MessageSelector(),
-                'cache_dir'        => null,
-                'debug'            => $container['translator/config']['debug'],
+                'manager'             => $container['locales/manager'],
+                'translation_factory' => $container['translation/factory'],
+                'cache_dir'           => null,
+                'debug'               => $container['translator/config']['debug'],
             ]);
 
             $translator->setFallbackLocales($container['locales/config']['fallback_languages']);
 
             return $translator;
+        };
+    }
+
+    /**
+     * Setup the application's translation service.
+     *
+     * @param  Container $container A DI container.
+     * @return void
+     */
+    public function registerTranslationFactory(Container $container)
+    {
+        /**
+         * @param  Container $container Pimple DI container.
+         * @return TranslationFactory
+         */
+        $container['translation/factory'] = function (Container $container) {
+            $factory = new TranslationFactory([
+                'manager'           => $container['locales/manager'],
+                'message_formatter' => new MessageFormatter(),
+            ]);
+            return $factory;
         };
     }
 

@@ -11,9 +11,15 @@ use JsonSerializable;
 use Charcoal\Translator\LocalesManager;
 
 /**
- * A translation object holds a localized message in all available locales.
+ * Translation Bag
  *
- * Available locales is provided with a locales manager.
+ * A Translation object is a language map whose keys must be strings representing
+ * language codes and the values must be any of the following types:
+ * null, string, or an array of zero or more of the previous possibilities.
+ *
+ * The available language codes are provided by a locales manager that is required
+ * by the Translation object. Its main function is to provide whichever language code
+ * is the current environment's locale.
  */
 class Translation implements
     ArrayAccess,
@@ -107,7 +113,7 @@ class Translation implements
 
         if (!isset($this->val[$lang])) {
             throw new DomainException(sprintf(
-                'Translation for "%s" is not defined.',
+                'Translation for "%s" is not defined',
                 $lang
             ));
         }
@@ -236,7 +242,7 @@ class Translation implements
             $this->val[$lang] = $val;
         } else {
             throw new InvalidArgumentException(
-                'Invalid localized value.'
+                'Invalid localized value'
             );
         }
 

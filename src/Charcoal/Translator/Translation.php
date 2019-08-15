@@ -34,13 +34,16 @@ class Translation implements
     private $manager;
 
     /**
-     * @param Translation|array|string $val     The translation values.
-     * @param LocalesManager           $manager A LocalesManager instance.
+     * @param mixed          $val     The {@see self::setVal() translation value(s)}.
+     * @param LocalesManager $manager A LocalesManager instance.
      */
     public function __construct($val, LocalesManager $manager)
     {
         $this->manager = $manager;
-        $this->setVal($val);
+
+        if ($val !== null) {
+            $this->setVal($val);
+        }
     }
 
     /**

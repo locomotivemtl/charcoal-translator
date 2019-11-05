@@ -95,15 +95,14 @@ class TranslatorTest extends AbstractTestCase
             $this->localesManager = new LocalesManager([
                 'locales' => [
                     'en' => [
-                        'locale' => 'en_US.UTF8'
+                        'locale' => 'en_US.UTF8',
                     ],
                     'fr' => [
-                        'locale' => 'fr_FR.UTF8'
-                    ]
+                        'locale' => 'fr_FR.UTF8',
+                    ],
                 ],
                 'default_language'   => 'en',
-                'fallback_languages' => [ 'en' ]
-
+                'fallback_languages' => [ 'en' ],
             ]);
         }
 
@@ -202,7 +201,7 @@ class TranslatorTest extends AbstractTestCase
 
         $ret = $this->obj->translation([
             'en' => 'Hello!',
-            'fr' => 'Bonjour!'
+            'fr' => 'Bonjour!',
         ]);
         $this->assertInstanceOf(Translation::class, $ret);
         $this->assertEquals('Hello!', (string)$ret);
@@ -266,7 +265,7 @@ class TranslatorTest extends AbstractTestCase
 
         $ret = $this->obj->translationChoice([
             'en' => 'There is one apple|There is %count% apples',
-            'fr' => 'Il y a %count% pomme|Il y a %count% pommes'
+            'fr' => 'Il y a %count% pomme|Il y a %count% pommes',
         ], 1);
         $this->assertInstanceOf(Translation::class, $ret);
         $this->assertEquals('There is one apple', (string)$ret);
@@ -414,7 +413,7 @@ class TranslatorTest extends AbstractTestCase
             [ [] ],
             [ [ 'foo', 'bar' ] ],
             [ [ [ ] ] ],
-            [ '' ]
+            [ '' ],
         ];
     }
 

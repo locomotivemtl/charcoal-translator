@@ -134,33 +134,33 @@ class ContainerProvider
                 'locales'   => [
                     'languages' => [
                         'en' => [ 'locale' => 'en-US', 'locales' => [ 'en_US.UTF-8', 'en_US.utf8', 'en_US' ] ],
-                        'fr' => [ 'locale' => 'fr-FR' ]
+                        'fr' => [ 'locale' => 'fr-FR' ],
                     ],
                     'default_language'   => 'en',
-                    'fallback_languages' => [ 'en' ]
+                    'fallback_languages' => [ 'en' ],
                 ],
                 'translator' => [
                     'paths' => [
-                        '/Charcoal/Translator/Fixture/translations'
+                        '/Charcoal/Translator/Fixture/translations',
                     ],
                     'translations' => [
                         'messages' => [
                             'en' => [
-                                'foo' => 'FOO'
+                                'foo' => 'FOO',
                             ],
                             'fr' => [
-                                'foo' => 'OOF'
-                            ]
-                        ]
+                                'foo' => 'OOF',
+                            ],
+                        ],
                     ],
                     'auto_detect' => true,
-                    'debug' => false
+                    'debug' => false,
                 ],
                 'view' => [
                     'paths' => [
-                        '/Charcoal/Translator/Fixture/views'
-                    ]
-                ]
+                        '/Charcoal/Translator/Fixture/views',
+                    ],
+                ],
             ]);
         };
     }
@@ -224,7 +224,7 @@ class ContainerProvider
             return new LocalesManager([
                 'locales'            => $container['locales/config']['languages'],
                 'default_language'   => $container['locales/config']['default_language'],
-                'fallback_languages' => $container['locales/config']['fallback_languages']
+                'fallback_languages' => $container['locales/config']['fallback_languages'],
             ]);
         };
 
@@ -237,7 +237,7 @@ class ContainerProvider
                 'manager'          => $container['locales/manager'],
                 'message_selector' => new MessageSelector(),
                 'cache_dir'        => null,
-                'debug'            => $container['translator/config']['debug']
+                'debug'            => $container['translator/config']['debug'],
             ]);
 
             $translator->setFallbackLocales($container['locales/config']['fallback_languages']);
@@ -261,8 +261,8 @@ class ContainerProvider
                 'base_path' => $container['config']['base_path'],
                 'paths'     => [
                     'metadata',
-                    'vendor/locomotivemtl/charcoal-property/metadata'
-                ]
+                    'vendor/locomotivemtl/charcoal-property/metadata',
+                ],
             ]);
         };
     }
@@ -280,11 +280,13 @@ class ContainerProvider
                 'map' => [
                     'database' => DatabaseSource::class
                 ],
-                'arguments'  => [[
-                    'logger' => $container['logger'],
-                    'cache'  => $container['cache'],
-                    'pdo'    => $container['database']
-                ]]
+                'arguments'  => [
+                    [
+                        'logger' => $container['logger'],
+                        'cache'  => $container['cache'],
+                        'pdo'    => $container['database'],
+                    ],
+                ],
             ]);
         };
     }
@@ -299,13 +301,15 @@ class ContainerProvider
     {
         $container['model/factory'] = function (Container $container) {
             return new Factory([
-                'arguments' => [[
-                    'container'         => $container,
-                    'logger'            => $container['logger'],
-                    'metadata_loader'   => $container['metadata/loader'],
-                    'source_factory'    => $container['source/factory'],
-                    'property_factory'  => $container['property/factory']
-                ]]
+                'arguments' => [
+                    [
+                        'container'         => $container,
+                        'logger'            => $container['logger'],
+                        'metadata_loader'   => $container['metadata/loader'],
+                        'source_factory'    => $container['source/factory'],
+                        'property_factory'  => $container['property/factory'],
+                    ],
+                ],
             ]);
         };
     }
@@ -322,14 +326,16 @@ class ContainerProvider
             return new Factory([
                 'resolver_options' => [
                     'prefix' => '\\Charcoal\\Property\\',
-                    'suffix' => 'Property'
+                    'suffix' => 'Property',
                 ],
-                'arguments' => [[
-                    'container'  => $container,
-                    'database'   => $container['database'],
-                    'logger'     => $container['logger'],
-                    'translator' => $container['translator']
-                ]]
+                'arguments' => [
+                    [
+                        'container'  => $container,
+                        'database'   => $container['database'],
+                        'logger'     => $container['logger'],
+                        'translator' => $container['translator'],
+                    ],
+                ],
             ]);
         };
     }

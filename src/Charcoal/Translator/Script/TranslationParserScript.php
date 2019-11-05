@@ -101,42 +101,42 @@ class TranslationParserScript extends AdminScript
                 'prefix'       => 'o',
                 'longPrefix'   => 'output',
                 'description'  => 'Output file path. Make sure the path exists in the translator paths definition. (Default: translation/)',
-                'defaultValue' => 'translations/'
+                'defaultValue' => 'translations/',
             ],
             'domain' => [
                 'prefix'       => 'd',
                 'longPrefix'   => 'domain',
                 'description'  => 'Doman for the csv file. Based on symfony/translator CsvLoader.',
-                'defaultValue' => 'messages'
+                'defaultValue' => 'messages',
             ],
             'recursive' => [
                 'prefix'       => 'r',
                 'longPrefix'   => 'recursive-level',
                 'description'  => 'Max recursive level for the glob operation on folders.',
-                'defaultValue' => -1
+                'defaultValue' => -1,
             ],
             'path' => [
                 'prefix'       => 'p',
                 'longPrefix'   => 'path',
                 'description'  => 'Path relative to the project installation (ex: templates/*/*/)',
-                'defaultValue' => false
+                'defaultValue' => false,
             ],
             'type' => [
                 'prefix'       => 't',
                 'longPrefix'   => 'type',
                 'description'  => 'File type (mustache || php)',
-                'defaultValue' => 'mustache'
+                'defaultValue' => 'mustache',
             ],
             'php_function' => [
                 'longPrefix'   => 'php',
                 'description'  => 'Php function to be parsed.',
-                'defaultValue' => 'translate'
+                'defaultValue' => 'translate',
             ],
             'mustache_tag' => [
                 'longPrefix'   => 'mustache',
                 'description'  => 'Mustache function to be parsed.',
-                'defaultValue' => '_t'
-            ]
+                'defaultValue' => '_t',
+            ],
         ];
 
         $arguments = array_merge(parent::defaultArguments(), $arguments);
@@ -464,7 +464,7 @@ class TranslationParserScript extends AdminScript
         if (!$this->fileTypes) {
             $this->fileTypes = [
                 'php',
-                'mustache'
+                'mustache',
             ];
         }
         return $this->fileTypes;

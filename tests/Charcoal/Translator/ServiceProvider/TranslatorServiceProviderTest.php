@@ -71,19 +71,19 @@ class TranslatorServiceProviderTest extends AbstractTestCase
                 'translations' => [
                     'messages' => [
                         'en' => [
-                            'foo' => 'FOO'
+                            'foo' => 'FOO',
                         ],
                         'fr' => [
-                            'foo' => 'OOF'
-                        ]
-                    ]
+                            'foo' => 'OOF',
+                        ],
+                    ],
                 ],
                 'debug' => false,
                 'cache_dir' => 'translator_cache',
             ],
             'middlewares' => [
-                'charcoal/translator/middleware/language' => []
-            ]
+                'charcoal/translator/middleware/language' => [],
+            ],
         ];
 
         $this->container->register($this->obj);

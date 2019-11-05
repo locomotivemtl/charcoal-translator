@@ -31,9 +31,9 @@ class LocalesManagerTest extends AbstractTestCase
             'locales' => [
                 'foo' => [],
                 'bar' => [],
-                'baz' => [ 'active' => false ]
+                'baz' => [ 'active' => false ],
             ],
-            'fallback_languages' => [ 'foo', 'bar' ]
+            'fallback_languages' => [ 'foo', 'bar' ],
         ]);
     }
 
@@ -46,9 +46,9 @@ class LocalesManagerTest extends AbstractTestCase
             'locales' => [
                 'foo' => [],
                 'bar' => [],
-                'baz' => [ 'active' => false ]
+                'baz' => [ 'active' => false ],
             ],
-            'default_language' => 'bar'
+            'default_language' => 'bar',
         ]);
         $this->assertEquals('bar', $this->obj->currentLocale());
         $this->assertEquals('bar', $this->obj->defaultLocale());
@@ -63,9 +63,9 @@ class LocalesManagerTest extends AbstractTestCase
     {
         $obj = new LocalesManager([
             'locales' => [
-                'foo' => []
+                'foo' => [],
             ],
-            'default_language' => false
+            'default_language' => false,
         ]);
     }
 
@@ -78,9 +78,9 @@ class LocalesManagerTest extends AbstractTestCase
     {
         $obj = new LocalesManager([
             'locales' => [
-                'foo' => []
+                'foo' => [],
             ],
-            'default_language' => 'bar'
+            'default_language' => 'bar',
         ]);
     }
 
@@ -92,7 +92,7 @@ class LocalesManagerTest extends AbstractTestCase
     public function testConstructorWithoutActiveLocales()
     {
         $obj = new LocalesManager([
-            'locales' => []
+            'locales' => [],
         ]);
     }
 
@@ -150,7 +150,7 @@ class LocalesManagerTest extends AbstractTestCase
                 'qux' => [ 'priority' => 1 ],
                 'xyz' => [ 'priority' => 0 ],
                 'zyx' => [ 'priority' => 0 ],
-            ]
+            ],
         ]);
     }
 

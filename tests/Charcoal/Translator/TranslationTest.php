@@ -29,15 +29,14 @@ class TranslationTest extends AbstractTestCase
             $this->localesManager = new LocalesManager([
                 'locales' => [
                     'en' => [
-                        'locale' => 'en_US.UTF8'
+                        'locale' => 'en_US.UTF8',
                     ],
                     'fr' => [
-                        'locale' => 'fr_FR.UTF8'
-                    ]
+                        'locale' => 'fr_FR.UTF8',
+                    ],
                 ],
                 'default_language'   => 'en',
-                'fallback_languages' => [ 'en' ]
-
+                'fallback_languages' => [ 'en' ],
             ]);
         }
 

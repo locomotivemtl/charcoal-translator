@@ -57,7 +57,7 @@ class TranslationParserScriptTest extends AbstractTestCase
             'logger'        => $this->container['logger'],
             'climate'       => $this->container['climate'],
             'model_factory' => $this->container['model/factory'],
-            'container'     => $this->container
+            'container'     => $this->container,
         ]);
     }
 

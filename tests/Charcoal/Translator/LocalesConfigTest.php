@@ -48,8 +48,8 @@ class LocalesConfigTest extends AbstractTestCase
     {
         $langs = [
             'foo' => [
-                'locale'=>'foo-FOO'
-            ]
+                'locale' => 'foo-FOO',
+            ],
         ];
         $ret = $this->obj->setLanguages($langs);
         $this->assertSame($ret, $this->obj);
@@ -57,8 +57,8 @@ class LocalesConfigTest extends AbstractTestCase
 
         $langs = [
             'bar' => [
-                'locale'=>'bar-BAR'
-            ]
+                'locale' => 'bar-BAR',
+            ],
         ];
         $this->obj['languages'] = $langs;
         $this->assertEquals($langs, $this->obj['languages']);

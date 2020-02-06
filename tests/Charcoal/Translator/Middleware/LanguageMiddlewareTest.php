@@ -68,7 +68,7 @@ class LanguageMiddlewareTest extends AbstractTestCase
         $container = $this->getContainer();
 
         $this->obj = $this->middlewareFactory([
-            'use_params' => true
+            'use_params' => true,
         ]);
     }
 
@@ -106,28 +106,28 @@ class LanguageMiddlewareTest extends AbstractTestCase
                 'locales'   => [
                     'languages' => [
                         'en' => [ 'locale' => 'en-US', 'locales' => [ 'en_US.UTF-8', 'en_US.utf8', 'en_US' ] ],
-                        'fr' => [ 'locale' => 'fr-FR' ]
+                        'fr' => [ 'locale' => 'fr-FR' ],
                     ],
                     'default_language'   => 'en',
-                    'fallback_languages' => [ 'en' ]
+                    'fallback_languages' => [ 'en' ],
                 ],
                 'translator' => [
                     'paths' => [
-                        '/Charcoal/Translator/Fixture/translations'
+                        '/Charcoal/Translator/Fixture/translations',
                     ],
                     'translations' => [
                         'messages' => [
                             'en' => [
-                                'foo' => 'FOO'
+                                'foo' => 'FOO',
                             ],
                             'fr' => [
-                                'foo' => 'OOF'
-                            ]
-                        ]
+                                'foo' => 'OOF',
+                            ],
+                        ],
                     ],
                     'auto_detect' => true,
-                    'debug' => false
-                ]
+                    'debug' => false,
+                ],
             ];
 
             $this->container->register(new TranslatorServiceProvider());
@@ -259,7 +259,7 @@ class LanguageMiddlewareTest extends AbstractTestCase
             'host_map'         => [
                 'en' => 'en.example.com',
                 'fr' => 'fr.example.com',
-            ]
+            ],
         ]);
 
         $uri = $this->createMock(UriInterface::class);
@@ -296,7 +296,7 @@ class LanguageMiddlewareTest extends AbstractTestCase
             'host_map'         => [
                 'en' => 'en.example.com',
                 'fr' => 'fr.example.com',
-            ]
+            ],
         ]);
 
         $uri = $this->createMock(UriInterface::class);
@@ -315,7 +315,7 @@ class LanguageMiddlewareTest extends AbstractTestCase
     public function testGetLanguageUseDefault()
     {
         $this->obj = $this->middlewareFactory([
-            'browser_language' => null
+            'browser_language' => null,
         ]);
 
         $request = $this->mockRequest();

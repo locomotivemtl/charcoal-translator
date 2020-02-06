@@ -142,7 +142,7 @@ class LanguageMiddleware
             'use_host'         => false,
             'host_map'         => [],
 
-            'set_locale'       => true
+            'set_locale'       => true,
         ];
     }
 

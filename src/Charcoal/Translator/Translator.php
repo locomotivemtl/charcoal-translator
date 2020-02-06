@@ -11,6 +11,7 @@ use Symfony\Component\Translation\MessageSelector;
 use Symfony\Component\Translation\Translator as SymfonyTranslator;
 
 // From 'charcoal-translator'
+use Charcoal\Translator\Factory\TranslationFactoryAwareTrait;
 use Charcoal\Translator\LocalesManager;
 use Charcoal\Translator\Translation;
 
@@ -19,22 +20,22 @@ use Charcoal\Translator\Translation;
  *
  * Extends the Symfony translator to allow returned values in a "Translation" oject,
  * containing localizations for all locales.
+ *
+ * A note about the Translator's behaviour on Translation objects:
+ *
+ * - Once a Translation object is instantiated, any value assigned to the current locale
+ *   will serve as the catalogue's "message id" and will be translated for any missing locales.
  */
 class Translator extends SymfonyTranslator
 {
+    use TranslationFactoryAwareTrait;
+
     /**
      * The locales manager.
      *
      * @var LocalesManager
      */
     private $manager;
-
-    /**
-     * The message selector.
-     *
-     * @var MessageSelector
-     */
-    private $selector;
 
     /**
      * The message formatter.
@@ -56,21 +57,16 @@ class Translator extends SymfonyTranslator
     public function __construct(array $data)
     {
         $this->setManager($data['manager']);
-
-        // Ensure Charcoal has control of the message selector.
-        if (!isset($data['message_selector'])) {
-            $data['message_selector'] = new MessageSelector();
-        }
-        $this->setSelector($data['message_selector']);
+        $this->setTranslationFactory($data['translation_factory']);
 
         // Ensure Charcoal has control of the message formatter.
         if (!isset($data['message_formatter'])) {
-            $data['message_formatter'] = new MessageFormatter($data['message_selector']);
+            $data['message_formatter'] = $data['translation_factory']->getFormatter();
         }
         $this->setFormatter($data['message_formatter']);
 
         $defaults = [
-            'locale'    => $this->manager()->currentLocale(),
+            'locale'    => $this->getManager()->currentLocale(),
             'cache_dir' => null,
             'debug'     => false,
         ];
@@ -119,30 +115,31 @@ class Translator extends SymfonyTranslator
     }
 
     /**
-     * Retrieve a translation object from a (mixed) message.
+     * Retrieve a new Translation object from a (mixed) message.
      *
-     * @uses   SymfonyTranslator::trans()
-     * @param  mixed       $val        The string or translation-object to retrieve.
+     * The $val will be {@see SymfonyTranslator::trans() translated}.
+     *
+     * @param  mixed       $val        A string or language-map.
      * @param  array       $parameters An array of parameters for the message.
      * @param  string|null $domain     The domain for the message or NULL to use the default.
-     * @return Translation|null The translation object or NULL if the value is not translatable.
+     * @return Translation|null A new Translation object or NULL if the value is not translatable.
      */
     public function translation($val, array $parameters = [], $domain = null)
     {
-        if ($this->isValidTranslation($val) === false) {
+        $factory = $this->getTranslationFactory();
+
+        if ($factory->isValidTranslation($val) === false) {
             return null;
         }
 
-        $translation = new Translation($val, $this->manager());
+        $translation = $factory->createTranslation($val);
         $localized   = (string)$translation;
+        $isMessageId = is_string($val);
         foreach ($this->availableLocales() as $lang) {
-            if (!isset($translation[$lang]) || $translation[$lang] === $val) {
+            if (!isset($translation[$lang]) || ($isMessageId && $translation[$lang] === $val)) {
                 $translation[$lang] = $this->trans($localized, $parameters, $domain, $lang);
             } else {
-                $translation[$lang] = strtr(
-                    $translation[$lang],
-                    $parameters
-                );
+                $translation[$lang] = $this->formatter->format($translation[$lang], $lang, $parameters);
             }
         }
 
@@ -152,13 +149,13 @@ class Translator extends SymfonyTranslator
     /**
      * Translates the given (mixed) message.
      *
-     * @uses   SymfonyTranslator::trans()
-     * @uses   Translator::translation()
-     * @param  mixed       $val        The string or translation-object to retrieve.
+     * The $val will be {@see SymfonyTranslator::trans() translated}.
+     *
+     * @param  mixed       $val        A string or language-map.
      * @param  array       $parameters An array of parameters for the message.
      * @param  string|null $domain     The domain for the message or NULL to use the default.
      * @param  string|null $locale     The locale or NULL to use the default.
-     * @return string The translated string
+     * @return string The translated string.
      */
     public function translate($val, array $parameters = [], $domain = null, $locale = null)
     {
@@ -167,7 +164,7 @@ class Translator extends SymfonyTranslator
         }
 
         if ($val instanceof Translation) {
-            return strtr($val[$locale], $parameters);
+            return $this->formatter->format($val[$locale], $locale, $parameters);
         }
 
         if (is_object($val) && method_exists($val, '__toString')) {
@@ -176,42 +173,39 @@ class Translator extends SymfonyTranslator
 
         if (is_string($val)) {
             return $this->trans($val, $parameters, $domain, $locale);
-        } else {
-            $translation = $this->translation($val, $parameters, $domain);
-            return $translation[$locale];
         }
+
+        $translation = $this->translation($val, $parameters, $domain);
+        return $translation[$locale];
     }
 
     /**
-     * Retrieve a translation object from a (mixed) message by choosing a translation according to a number.
+     * Retrieve a new Translation object from a (mixed) message by choosing a translation according to a number.
      *
-     * @uses   SymfonyTranslator::transChoice()
-     * @param  mixed       $val        The string or translation-object to retrieve.
+     * The $val will be {@see SymfonyTranslator::transChoice() translated}.
+     *
+     * @param  mixed       $val        A string or language-map.
      * @param  integer     $number     The number to use to find the indice of the message.
      * @param  array       $parameters An array of parameters for the message.
      * @param  string|null $domain     The domain for the message or NULL to use the default.
-     * @return Translation|null The translation object or NULL if the value is not translatable.
+     * @return Translation|null A new Translation object or NULL if the value is not translatable.
      */
     public function translationChoice($val, $number, array $parameters = [], $domain = null)
     {
-        if ($this->isValidTranslation($val) === false) {
+        $factory = $this->getTranslationFactory();
+
+        if ($factory->isValidTranslation($val) === false) {
             return null;
         }
 
-        $parameters = array_merge([
-            '%count%' => $number,
-        ], $parameters);
-
-        $translation = new Translation($val, $this->manager());
+        $translation = $factory->createTranslation($val);
         $localized   = (string)$translation;
+        $isMessageId = is_string($val);
         foreach ($this->availableLocales() as $lang) {
-            if (!isset($translation[$lang]) || $translation[$lang] === $val) {
+            if (!isset($translation[$lang]) || ($isMessageId && $translation[$lang] === $val)) {
                 $translation[$lang] = $this->transChoice($localized, $number, $parameters, $domain, $lang);
             } else {
-                $translation[$lang] = strtr(
-                    $this->selector()->choose($translation[$lang], (int)$number, $lang),
-                    $parameters
-                );
+                $translation[$lang] = $this->formatter->choiceFormat($translation[$lang], $number, $lang, $parameters);
             }
         }
 
@@ -221,14 +215,14 @@ class Translator extends SymfonyTranslator
     /**
      * Translates the given (mixed) choice message by choosing a translation according to a number.
      *
-     * @uses   SymfonyTranslator::transChoice()
-     * @uses   Translator::translationChoice()
-     * @param  mixed       $val        The string or translation-object to retrieve.
+     * The $val will be {@see SymfonyTranslator::trans() translated}.
+     *
+     * @param  mixed       $val        A string or language-map.
      * @param  integer     $number     The number to use to find the indice of the message.
      * @param  array       $parameters An array of parameters for the message.
      * @param  string|null $domain     The domain for the message or NULL to use the default.
      * @param  string|null $locale     The locale or NULL to use the default.
-     * @return string The translated string
+     * @return string The translated string.
      */
     public function translateChoice($val, $number, array $parameters = [], $domain = null, $locale = null)
     {
@@ -237,14 +231,7 @@ class Translator extends SymfonyTranslator
         }
 
         if ($val instanceof Translation) {
-            $parameters = array_merge([
-                '%count%' => $number,
-            ], $parameters);
-
-            return strtr(
-                $this->selector()->choose($val[$locale], (int)$number, $locale),
-                $parameters
-            );
+            return $this->formatter->choiceFormat($val[$locale], $number, $locale, $parameters);
         }
 
         if (is_object($val) && method_exists($val, '__toString')) {
@@ -253,10 +240,10 @@ class Translator extends SymfonyTranslator
 
         if (is_string($val)) {
             return $this->transChoice($val, $number, $parameters, $domain, $locale);
-        } else {
-            $translation = $this->translationChoice($val, $number, $parameters, $domain);
-            return $translation[$locale];
         }
+
+        $translation = $this->translationChoice($val, $number, $parameters, $domain);
+        return $translation[$locale];
     }
 
     /**
@@ -266,7 +253,7 @@ class Translator extends SymfonyTranslator
      */
     public function locales()
     {
-        return $this->manager()->locales();
+        return $this->getManager()->locales();
     }
 
     /**
@@ -276,7 +263,7 @@ class Translator extends SymfonyTranslator
      */
     public function availableLocales()
     {
-        return $this->manager()->availableLocales();
+        return $this->getManager()->availableLocales();
     }
 
     /**
@@ -290,7 +277,7 @@ class Translator extends SymfonyTranslator
     {
         parent::setLocale($locale);
 
-        $this->manager()->setCurrentLocale($locale);
+        $this->getManager()->setCurrentLocale($locale);
     }
 
     /**
@@ -309,33 +296,9 @@ class Translator extends SymfonyTranslator
      *
      * @return LocalesManager
      */
-    protected function manager()
+    protected function getManager()
     {
         return $this->manager;
-    }
-
-    /**
-     * Set the message selector.
-     *
-     * The {@see SymfonyTranslator} keeps the message selector private (as of 3.3.2),
-     * thus we must explicitly require it in this class to guarantee access.
-     *
-     * @param  MessageSelector $selector The selector.
-     * @return void
-     */
-    public function setSelector(MessageSelector $selector)
-    {
-        $this->selector = $selector;
-    }
-
-    /**
-     * Retrieve the message selector.
-     *
-     * @return MessageSelector
-     */
-    protected function selector()
-    {
-        return $this->selector;
     }
 
     /**
@@ -347,7 +310,7 @@ class Translator extends SymfonyTranslator
      * @param  MessageFormatterInterface $formatter The formatter.
      * @return void
      */
-    public function setFormatter(MessageFormatterInterface $formatter)
+    private function setFormatter(MessageFormatterInterface $formatter)
     {
         $this->formatter = $formatter;
     }
@@ -357,7 +320,7 @@ class Translator extends SymfonyTranslator
      *
      * @return MessageFormatterInterface
      */
-    protected function formatter()
+    protected function getFormatter()
     {
         return $this->formatter;
     }
@@ -394,43 +357,5 @@ class Translator extends SymfonyTranslator
         }
 
         return $this->getCatalogue($locale)->defines($id, $domain);
-    }
-
-    /**
-     * Determine if the value is translatable.
-     *
-     * @param  mixed $val The value to be checked.
-     * @return boolean
-     */
-    protected function isValidTranslation($val)
-    {
-        if (empty($val) && !is_numeric($val)) {
-            return false;
-        }
-
-        if (is_string($val)) {
-            return !empty(trim($val));
-        }
-
-        if ($val instanceof Translation) {
-            return true;
-        }
-
-        if (is_array($val)) {
-            return !!array_filter(
-                $val,
-                function ($v, $k) {
-                    if (is_string($k) && strlen($k) > 0) {
-                        if (is_string($v) && strlen($v) > 0) {
-                            return true;
-                        }
-                    }
-
-                    return false;
-                },
-                ARRAY_FILTER_USE_BOTH
-            );
-        }
-        return false;
     }
 }

@@ -199,6 +199,17 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $this->obj->translateChoice($id, $number, $parameters, $domain, $locale));
     }
 
+    /**
+     * @dataProvider invalidTransTests
+     *
+     * @param  mixed $val The message ID.
+     * @return void
+     */
+    public function testTranslateChoiceInvalidValuesReturnEmptyString($val)
+    {
+        $this->assertEquals('', $this->obj->translateChoice($val, 1));
+    }
+
     public function testSetLocaleSetLocalesManagerCurrentLanguage()
     {
         $this->obj->setLocale('fr');
@@ -244,15 +255,15 @@ class TranslatorTest extends PHPUnit_Framework_TestCase
     public function invalidTransTests()
     {
         return [
-            [ null ],
-            [ 0 ],
-            [ 1 ],
-            [ true ],
-            [ false ],
-            [ [] ],
-            [ [ 'foo', 'bar' ] ],
-            [ [ [ ] ] ],
-            [ '' ]
+            'null'                         => [ null ],
+            '0'                            => [ 0 ],
+            '1'                            => [ 1 ],
+            'true'                         => [ true ],
+            'false'                        => [ false ],
+            'empty string'                 => [ '' ],
+            'empty array'                  => [ [] ],
+            'indexed array'                => [ [ 'foo', 'bar' ] ],
+            'empty multidimensional array' => [ [ [ ] ] ],
         ];
     }
 
